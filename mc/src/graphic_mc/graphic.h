@@ -9,6 +9,7 @@
 #include <panel.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 
 WINDOW* InitGraphic();
 int FinalizeGraphic();

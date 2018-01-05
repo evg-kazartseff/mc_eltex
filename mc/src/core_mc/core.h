@@ -5,17 +5,10 @@
 #ifndef MY_MC_CORE_H
 #define MY_MC_CORE_H
 
-#include "../graphic/graphic.h"
+#include "../graphic_mc/graphic.h"
 #include <zconf.h>
 #include <sys/types.h>
 #include <dirent.h>
-
-#define SELECT_ACTIVE 2
-#define RUN 1
-#define STOP 0
-
-#define LEFT 0
-#define RIGHT 1
 
 typedef struct content_dir content_dir_t;
 

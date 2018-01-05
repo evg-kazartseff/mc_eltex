@@ -8,6 +8,18 @@ struct content_dir {
     int size;
 };
 
+enum ACTION {
+    STOP,
+    RUN,
+    SELECT_ACTIVE,
+    OPEN
+};
+
+enum PLACE {
+    LEFT,
+    RIGHT
+};
+
 int core_mc(int argc, char** argv) {
     char dir_path[2][FILENAME_MAX];
     getcwd(dir_path[LEFT], FILENAME_MAX);
@@ -19,6 +31,7 @@ int core_mc(int argc, char** argv) {
     WINDOW* active[2];
     PANEL* PanelRow[2];
     content_dir_t* ContentDir[2] = {NULL, NULL};
+
     int maxx;
     int maxy;
     int flg = RUN;
@@ -34,22 +47,26 @@ int core_mc(int argc, char** argv) {
             wait_resize();
         }
         clear();
+        if (flg == OPEN) {
+            
+        }
         Main = GetMainWindow(Main);
+        free_content_dir(ContentDir[LEFT]);
+        free_content_dir(ContentDir[RIGHT]);
+        ContentDir[LEFT] = get_content_directory(dir_path[LEFT]);
+        ContentDir[RIGHT] = get_content_directory(dir_path[RIGHT]);
         Left = GetLeftWindow(Main, dir_path[LEFT]);
         Right = GetRightWindow(Main, dir_path[RIGHT]);
         Bottom = GetBottomWindow(Main);
         active[LEFT] = GetActiveArea(Left);
         active[RIGHT] = GetActiveArea(Right);
-        free_content_dir(ContentDir[LEFT]);
-        free_content_dir(ContentDir[RIGHT]);
-        ContentDir[LEFT] = get_content_directory(dir_path[LEFT]);
-        ContentDir[RIGHT] = get_content_directory(dir_path[RIGHT]);
         PanelRow[LEFT] = GetPanelRow(active[LEFT], row[LEFT], ContentDir[LEFT]->content[row[LEFT]]);
         PanelRow[RIGHT] = GetPanelRow(active[RIGHT], row[RIGHT], ContentDir[RIGHT]->content[row[RIGHT]]);
         display_directory(active[LEFT], ContentDir[LEFT]);
         display_directory(active[RIGHT], ContentDir[RIGHT]);
         if (flg == SELECT_ACTIVE) {
             i ^= 1;
+            chdir(dir_path[i]);
         }
         SelectActive(PanelRow, i);
         refresh();
@@ -58,24 +75,36 @@ int core_mc(int argc, char** argv) {
             case KEY_F(10):
                 flg = STOP;
                 break;
+            case KEY_F(3):
+                flg = OPEN;
+                break;
             case 9:
                 flg = SELECT_ACTIVE;
                 break;
             case KEY_UP:
-                if (row[i] != 0)
+                if (row[i] > 0)
                    row[i]--;
+                flg = RUN;
                 break;
             case KEY_DOWN:
                 if (ContentDir[i] != NULL) {
-                    if (row[i] != ContentDir[i]->size - 1)
+                    if (row[i] < ContentDir[i]->size - 1)
                         row[i]++;
                 }
+                flg = RUN;
                 break;
             case 10:
-                /*strcpy(ContentDir[i]->content[row[i]]->d_name, dir_path[i]);
-                move(20, 20);
-                printw(ContentDir[i]->content[row[i]]->d_name);
-                getch();*/
+                if (ContentDir[i] != NULL) {
+                    if (ContentDir[i]->content[row[i]]->d_type == DT_DIR) {
+                        char jump[FILENAME_MAX];
+                        strcpy(jump, "./");
+                        strcat(jump, ContentDir[i]->content[row[i]]->d_name);
+                        chdir(jump);
+                        getcwd(dir_path[i], FILENAME_MAX);
+                        row[i] = 0;
+                    }
+                }
+                flg = RUN;
                 break;
             default:
                 flg = RUN;
